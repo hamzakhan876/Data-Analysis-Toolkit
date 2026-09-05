@@ -6,8 +6,15 @@ import plotly.express as px
 st.title("📊 Data Analysis Toolkit")
 
 
+# -------------------------
 # CSV Upload
-uploaded_file = st.file_uploader("Upload your CSV file",type=["csv"])
+# -------------------------
+
+uploaded_file = st.file_uploader(
+    "Upload your CSV file",
+    type=["csv"]
+)
+
 
 if uploaded_file:
 
@@ -18,8 +25,9 @@ if uploaded_file:
         st.success("CSV loaded successfully!")
 
 
-# Sidebar Filter
-        
+        # -------------------------
+        # Sidebar Filter
+        # -------------------------
 
         st.sidebar.header("Data Filter")
 
@@ -34,6 +42,7 @@ if uploaded_file:
         )
 
         if filter_values:
+
             df = df[
                 df[filter_column].isin(filter_values)
             ]
@@ -96,7 +105,13 @@ if uploaded_file:
         ).columns.tolist()
 
 
-        if len(numeric_columns) >= 1:
+        if len(numeric_columns) == 0:
+
+            st.warning(
+                "No numeric columns are available for charting."
+            )
+
+        else:
 
             chart_type = st.selectbox(
                 "Choose a chart",
@@ -109,7 +124,7 @@ if uploaded_file:
             )
 
 
-            # Histogram only needs one column
+            # Histogram only needs one numeric column
 
             if chart_type == "Histogram":
 
@@ -124,58 +139,54 @@ if uploaded_file:
                 )
 
 
-            # Other charts need X and Y
+            # Other charts need at least two numeric columns
 
-            else:
+            elif len(numeric_columns) >= 2:
 
-                if len(numeric_columns) >= 2:
+                x_column = st.selectbox(
+                    "Choose X-axis",
+                    numeric_columns
+                )
 
-                    x_column = st.selectbox(
-                        "Choose X-axis",
-                        numeric_columns
+                y_column = st.selectbox(
+                    "Choose Y-axis",
+                    numeric_columns
+                )
+
+
+                if chart_type == "Bar Chart":
+
+                    fig = px.bar(
+                        df,
+                        x=x_column,
+                        y=y_column
                     )
 
-                    y_column = st.selectbox(
-                        "Choose Y-axis",
-                        numeric_columns
+                elif chart_type == "Line Chart":
+
+                    fig = px.line(
+                        df,
+                        x=x_column,
+                        y=y_column
                     )
-
-
-                    if chart_type == "Bar Chart":
-
-                        fig = px.bar(
-                            df,
-                            x=x_column,
-                            y=y_column
-                        )
-
-
-                    elif chart_type == "Line Chart":
-
-                        fig = px.line(
-                            df,
-                            x=x_column,
-                            y=y_column
-                        )
-
-
-                    elif chart_type == "Scatter Chart":
-
-                        fig = px.scatter(
-                            df,
-                            x=x_column,
-                            y=y_column
-                        )
-
 
                 else:
 
-                    st.warning(
-                        "You need at least two numeric columns "
-                        "for this chart."
+                    fig = px.scatter(
+                        df,
+                        x=x_column,
+                        y=y_column
                     )
 
-                    fig = None
+
+            else:
+
+                fig = None
+
+                st.warning(
+                    "Bar, Line, and Scatter charts require "
+                    "at least two numeric columns."
+                )
 
 
             # Display chart
